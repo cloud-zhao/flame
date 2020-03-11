@@ -71,21 +71,24 @@ case object StringFormat extends RedisFormat
 
 /**
   * redis table 需要的相关配置
-  * @param bnsName        bns名称
+  * @param name           ip:port
   * @param password       codis密码
   * @param filterStatus   是否过滤codis节点
   * @param tableName      redis是中表名称,当使用hash模式时此项为redis key，若使用字符串模式时此项为key的前缀
   * @param tableFormat    指定存储在redis中使用hash 存储还是普通字符串存储
   * @param tableMaxNumber 指定存储在redis中是否按此编号打散存储
   */
-case class RedisConfig(bnsName: String,
+case class RedisConfig(name: String,
                        password: String,
                        filterStatus: Boolean,
                        tableName: String,
                        tableFormat: RedisFormat,
                        tableMaxNumber: Int) extends Serializable {
 
-  def endpoint: CodisEndPoint = CodisEndPoint(bnsName, password, filterStatus)
+  def endpoint: CodisEndPoint = {
+    val info = name.split(":")
+    CodisEndPoint(info.head, info(2).toInt, password)
+  }
 
 }
 

@@ -1,9 +1,7 @@
 package org.flame.streaming.util
 
-import java.net.ConnectException
 import java.util.concurrent.ConcurrentHashMap
 
-import org.flame.streaming.util.BnsClientProtos.bnsClient
 import org.slf4j.LoggerFactory
 import redis.clients.jedis._
 import redis.clients.jedis.exceptions.JedisConnectionException
@@ -30,7 +28,7 @@ object CodisUtil {
     * @return
     */
   def connect(codisEndPoint: CodisEndPoint): Jedis = {
-    var pools = bns_pools.getOrElseUpdate(codisEndPoint.bnsName, createJedisPool(codisEndPoint))
+    var pools = bns_pools.getOrElseUpdate(codisEndPoint.name, createJedisPool(codisEndPoint))
     var i = 0
     var sleepTime: Int = 50
     var conn: Jedis = null
@@ -42,11 +40,13 @@ object CodisUtil {
           if (sleepTime < 500) {
             sleepTime *= 2
             Thread.sleep(sleepTime)
-          } else if(i < 3){
-            Try{pools.close()}
+          } else if (i < 3) {
+            Try {
+              pools.close()
+            }
             pools = createJedisPool(codisEndPoint)
             i = i + 1
-            bns_pools.put(codisEndPoint.bnsName, pools)
+            bns_pools.put(codisEndPoint.name, pools)
           } else throw x
         }
         case e: Exception => throw e
@@ -63,7 +63,7 @@ object CodisUtil {
     */
   def createJedisPool(codisEndPoint: CodisEndPoint): JedisPool = {
 
-    logger.info(s"createJedisPool with ${codisEndPoint.bnsName} ")
+    logger.info(s"createJedisPool with ${codisEndPoint.name} ")
     val poolConfig: JedisPoolConfig = new JedisPoolConfig()
     /*最大连接数*/
     poolConfig.setMaxTotal(300)
@@ -79,18 +79,13 @@ object CodisUtil {
     /*逐出扫描的时间间隔(毫秒) 如果为负数,则不运行逐出线程, 默认-1*/
     poolConfig.setTimeBetweenEvictionRunsMillis(30000)
     poolConfig.setNumTestsPerEvictionRun(-1)
-    val bnsMessage = bnsClient(codisEndPoint.bnsName, codisEndPoint.filterStatus)
-    if (bnsMessage.success && bnsMessage.data.get.nonEmpty) {
-      val bnsServers = bnsMessage.data.get
-      val codisServer = bnsServers(Random.nextInt(bnsServers.length))
-      logger.info(s"from codis ${codisServer.vnetIp}:${codisServer.port} create redis pool")
-      new JedisPool(poolConfig,
-        codisServer.vnetIp,
-        codisServer.port.toInt,
-        Protocol.DEFAULT_TIMEOUT,
-        codisEndPoint.password,
-        Protocol.DEFAULT_DATABASE)
-    } else throw new ConnectException(s"bns ${codisEndPoint.bnsName} server error\nbnsMessage : ${bnsMessage.message}")
+    logger.info(s"from codis ${codisEndPoint.host}:${codisEndPoint.port} create redis pool")
+    new JedisPool(poolConfig,
+      codisEndPoint.host,
+      codisEndPoint.port,
+      Protocol.DEFAULT_TIMEOUT,
+      codisEndPoint.password,
+      Protocol.DEFAULT_DATABASE)
   }
 
   def safeClose[R](f: Jedis => R)(implicit jedis: Jedis): R = {
@@ -119,7 +114,7 @@ object CodisUtil {
   }
 
   def close(endPoint: CodisEndPoint): Unit = {
-    bns_pools.filter(x => x._1 == endPoint.bnsName).foreach(_._2.close())
+    bns_pools.filter(x => x._1 == endPoint.name).foreach(_._2.close())
   }
 
   def close(): Unit = {
@@ -128,6 +123,8 @@ object CodisUtil {
   }
 }
 
-case class CodisEndPoint(bnsName: String,
-                         password: String = null,
-                         filterStatus: Boolean = false) extends Serializable
+case class CodisEndPoint(host: String,
+                         port: Int,
+                         password: String = null) extends Serializable {
+  def name: String = s"$host:$port"
+}

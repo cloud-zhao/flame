@@ -1,6 +1,5 @@
 package org.flame.streaming.util
 
-import com.homework.da.format.DataTable
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 
@@ -13,9 +12,6 @@ object JsonUtil {
   def toAny[T : Manifest](s : String): T = parse(s).extract[T]
 
   def parseToJValue(s: String): JValue = parse(s)
-
-  @deprecated("please use function DataTable.str2dt")
-  def toDataTable(s : String): DataTable = DataTable.str2dt(s)
 
   def toJson(o: Any): String = compact(toJValue(o))
 

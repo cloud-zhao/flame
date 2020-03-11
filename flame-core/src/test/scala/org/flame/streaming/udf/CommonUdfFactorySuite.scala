@@ -1,6 +1,7 @@
-package com.zyb.bigdata.rtsql.udf
+package org.flame.streaming.udf
 
 import org.scalatest.FunSuite
+
 
 /**
  * Author: zhangying14

@@ -9,22 +9,7 @@
             <outputDirectory>lib</outputDirectory>
             <useProjectAttachments>true</useProjectAttachments>
             <includes>
-                <include>com.homework.da:bigdata-tools</include>
-                <include>org.apache.hbase:hbase-client</include>
-                <include>org.apache.hbase:hbase-common</include>
-                <include>org.apache.hbase:hbase-server</include>
-                <include>org.apache.hbase:hbase-hadoop2-compat</include>
                 <include>redis.clients:jedis</include>
-                <include>mysql:mysql-connector-java</include>
-                <include>org.apache.commons:commons-pool2</include>
-                <include>org.apache.commons:commons-collections4</include>
-                <include>org.apache.commons:commons-dbcp2</include>
-                <include>commons-dbutils:commons-dbutils</include>
-                <include>com.sksamuel.elastic4s:elastic4s-http_2.11</include>
-                <include>com.sksamuel.exts:exts_2.11</include>
-                <include>com.sksamuel.elastic4s:elastic4s-core_2.11</include>
-                <include>org.elasticsearch.client:elasticsearch-rest-client</include>
-                <include>com.typesafe:config</include>
                 <include>org.scala-lang:scalap</include>
             </includes>
         </dependencySet>
